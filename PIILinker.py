@@ -8,22 +8,28 @@
     This program renames submission folders 
     from GradeScope such that they contain 
     names in preparation for Compare50 scan. 
+    
+    #! TODO (maybe): ADD DEPENDANCY MANAGER
 """
 
 from os import listdir, chdir, getcwd, path, mkdir, name as OS, system as sys
 from alive_progress import alive_bar # pip install alive-progress
 from datetime import datetime as dt
 
+
+
 #* Student Dataclass
 class Student():
-    """
-        > NAME: Student's name
-        > SID: Student's submission ID
-        > CODE: Student's submitted code
-    """
-    
-    
-    def __init__(self, first_=None, last_=None, SID_=None, uin_=None, email_=None, section_=None) -> None:
+        
+    def __init__(self, 
+                 first_=None, 
+                 last_=None, 
+                 SID_=None, 
+                 uin_=None, 
+                 email_=None, 
+                 section_=None
+                ) -> None:
+        
         self.NAME:    str = first_ + " " + last_
         self.SID:     int = int(SID_)
         self.CODE:    str = ""
@@ -35,14 +41,16 @@ class Student():
     def __repr__(self) -> str:
         return f"{self.NAME} | UIN{self.UIN} | {self.EMAIL} | {self.SECTION if self.SECTION else 'N/A'} | Submission ID: {self.SID}"
 
+
+
 #* Submission ID & PII Handler
-class FileWrangler():
+class PIILinker():
     """
-        > ROOTDIR: Root Directory of Program
-        > ARCHIVE: Directory of submissions archive
-        > SID_CSV: CSV file with student PII & submission IDs
-        > CHECK:   List of filenames to run Compare50 on
-        > DATABASE: Dict of submission ID (int) keys corresponding to Student objs 
+        > ROOTDIR:  Root Directory of Program
+        > ARCHIVE:  Submissions Archive from GradeScope
+        > SID_CSV:  CSV; Student SID & PII
+        > CHECK:    List of filenames to run Compare50 on
+        > DATABASE: Dict of SID (int) keys -> Student objs 
     """
     
     
@@ -63,7 +71,7 @@ class FileWrangler():
     
     
     def setup(self) -> None:
-        """ Initializes config variables using auto-detection """
+        """ Initializes config variables; auto-detected """
         with alive_bar(1) as bar:
             print("Auto-Dectecting Files...")
             
@@ -77,14 +85,13 @@ class FileWrangler():
                     
             #* Grabbing names of starter code files to extract from student submissions
             try:
-                chdir(path.join(self.ROOTDIR, "Starter")) #> Opening starter
+                chdir(path.join(self.ROOTDIR, "Starter")) #> Opening Starter folder
                 self.CHECK = [file for file in listdir() if file.endswith(".cpp") or file.endswith(".h")]
                 if not self.CHECK:
                     print("[ERROR S1]: No .cpp nor .h files found in directory 'Starter'\nEXITING...")
                     exit()
                 
-                #* Create combined starter code file 
-                
+                #* Concatenate combined starter code file for FileWrangler::generate()
                 for sFile in self.CHECK:
                     with open(sFile, 'r') as rFile:
                         self.STARTER += f"/* ----- {sFile} | STARTER CODE ----- */\n\n{rFile.read()}"
@@ -109,10 +116,7 @@ class FileWrangler():
                     csvFile.readline() #? Omit Header
                     self.DATABASE = {
                         int(sid) : Student(first, last, sid, uin, email, section) for sid, first, last, uin, email, section
-                            in [
-                                [line.split(",")[8]] + line.split(",")[:5]
-                                    for line in csvFile.read().split('\n') if "Graded" in line
-                            ]
+                            in [[line.split(",")[8]] + line.split(",")[:5] for line in csvFile.read().split('\n') if "Graded" in line]
                     } 
                     
             except FileNotFoundError: print(f"[ERROR B1]: {self.SID_CSV} is not in root directory\n\t{self.ROOTDIR}")
@@ -171,7 +175,7 @@ class FileWrangler():
                 
             except KeyboardInterrupt: exit()
             except Exception as e: 
-                print(f"[ERROR G1]: Unknown Exception 1:\n\t{e}\nEXITING")
+                print(f"[ERROR G1]: Unknown Exception 1:\n\t{e}\nEXITING...")
                 exit()
 
             #* Write all files
@@ -197,8 +201,10 @@ class FileWrangler():
         sys('cls' if OS == 'nt' else 'clear')
     
     
+
 def main():
-    mgr = FileWrangler()
+    """ Main logic flow control """
+    mgr = PIILinker()
     
     mgr.setup()    #> Setup Params & Data
     mgr.build()    #> Build Student Database
@@ -208,6 +214,8 @@ def main():
     print(f"\nSummary:\n\t{len(listdir(mgr.ARCHIVE))} PII-Linked Files Generated")
     
     
+    
 if __name__ == "__main__":
+    """ Import Guardian """
     main()
    
