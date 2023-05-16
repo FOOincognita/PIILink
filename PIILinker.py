@@ -22,6 +22,7 @@ class Student():
         > CODE: Student's submitted code
     """
     
+    
     def __init__(self, first_=None, last_=None, SID_=None, uin_=None, email_=None, section_=None) -> None:
         self.NAME:    str = first_ + " " + last_
         self.SID:     int = int(SID_)
@@ -29,6 +30,7 @@ class Student():
         self.UIN:     str = uin_
         self.EMAIL:   str = email_
         self.SECTION: str = section_
+    
     
     def __repr__(self) -> str:
         return f"{self.NAME} | UIN{self.UIN} | {self.EMAIL} | {self.SECTION if self.SECTION else 'N/A'} | Submission ID: {self.SID}"
@@ -43,6 +45,7 @@ class FileWrangler():
         > DATABASE: Dict of submission ID (int) keys corresponding to Student objs 
     """
     
+    
     def __init__(self) -> None:
         self.ROOTDIR: str = getcwd()
         self.ARCHIVE: str = "NONE"
@@ -53,9 +56,11 @@ class FileWrangler():
         
         self.DATABASE: dict[int, Student] = {}
         
+        
     def __getitem__(self, SID: int) -> Student | None:
         """ Returns student given submissionID """
         return self.DATABASE.get(SID)
+    
     
     def setup(self) -> None:
         """ Initializes config variables using auto-detection """
@@ -91,9 +96,7 @@ class FileWrangler():
                 exit()
             except Exception as e: print(f"[ERROR S3]: Unknown Exception:\n\t{e}")
             bar(1)
-            
-            #!print(self.DATABASE, self.ARCHIVE, self.SID_CSV, self.CHECK)
-                
+    
     
     def build(self) -> None:
         """ Builds student database using exported submission CSV """
@@ -117,9 +120,8 @@ class FileWrangler():
             except Exception as e: print(f"[ERROR B2]: Unknown Exception:\n\t{e}")
             bar(1)
             print("Database Sucessfully Built...")
-            #!print(self.DATABASE)
        
-            
+           
     def extract(self) -> None:
         """ Extracts code from submissions to later write to PII-linked files """
         with alive_bar(len(self.DATABASE)) as bar:
@@ -134,7 +136,7 @@ class FileWrangler():
                 for file in self.CHECK:
                     try:
                         with open(file, 'r') as fileCode:
-                            #* Store Unified code from submitted code file(s) 
+                            #* Store unified code from submitted code file(s) 
                             (stu := self[int(subID := folderName.strip().split('_')[-1])]).CODE \
                                 += f"/* ----- {file} | {repr(stu)} ----- */\n\n{fileCode.read()}"
                             
@@ -147,6 +149,7 @@ class FileWrangler():
                 bar(1)
             chdir(self.ROOTDIR) #> Restore Root Directory
             print("Code Extracted & Linked...")
+        
         
     def generate(self) -> None:
         """ Generates folder of single files which contain PII-linked code """
@@ -181,6 +184,7 @@ class FileWrangler():
             chdir(self.ROOTDIR) #> Restore root directory
             print("Folder Generation Complete...")
 
+
     @staticmethod
     def clearTerminal() -> None:
         """ Clears Terminal of All Text """
@@ -189,11 +193,14 @@ class FileWrangler():
     
 def main():
     mgr = FileWrangler()
-    mgr.setup()
-    mgr.build()
-    mgr.extract()
-    mgr.generate()
+    
+    mgr.setup()    #> Setup Params & Data
+    mgr.build()    #> Build Student Database
+    mgr.extract()  #> Extract Student Code
+    mgr.generate() #> Generate PII-Linked Folder of Student Code
+    
     print(f"\nSummary:\n\t{len(listdir(mgr.ARCHIVE))} PII-Linked Files Generated")
+    
     
 if __name__ == "__main__":
     main()
