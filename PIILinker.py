@@ -1,15 +1,13 @@
 """
-    @File: IDMatch.py
+    @File: PIILinker.py
     @Author: Archer Simmons, UGTA
     @Contact:
-        > (832)-433-2245
+        > 832 <dash> 433 <dash> 2245
         > Archer.Simmons@tamu.edu 
     
     This program renames submission folders 
     from GradeScope such that they contain 
     names in preparation for Compare50 scan. 
-    
-    Before running, do: pip install alive-progress
 """
 
 from os import listdir, chdir, getcwd, path, mkdir, name as OS, system as sys
