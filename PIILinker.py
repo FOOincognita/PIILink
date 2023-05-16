@@ -1,18 +1,22 @@
 """
     @File: PIILinker.py
     @Author: Archer Simmons, UGTA
-    @Contact:
-        > 832 <dash> 433 <dash> 2245
-        > Archer.Simmons@tamu.edu 
+    @Contact: Archer.Simmons@tamu.edu 
+    
+        Personal:
+            832 <dash> 433 <dash> 2245
+            Archer1799@gmail.com
     
     This program renames submission folders 
     from GradeScope such that they contain 
     names in preparation for Compare50 scan. 
     
     #! TODO (maybe): ADD DEPENDANCY MANAGER
+    #! TODO (maybe): ADD GUI
+    
 """
 
-from os import listdir, chdir, getcwd, path, mkdir, name as OS, system as sys
+from os import listdir, chdir, getcwd, path, mkdir, system, name as OS
 from alive_progress import alive_bar # pip install alive-progress
 from datetime import datetime as dt
 
@@ -21,15 +25,7 @@ from datetime import datetime as dt
 #* Student Dataclass
 class Student():
         
-    def __init__(self, 
-                 first_=None, 
-                 last_=None, 
-                 SID_=None, 
-                 uin_=None, 
-                 email_=None, 
-                 section_=None
-                ) -> None:
-        
+    def __init__(self, first_=None, last_=None, SID_=None, uin_=None, email_=None, section_=None) -> None:
         self.NAME:    str = first_ + " " + last_
         self.SID:     int = int(SID_)
         self.CODE:    str = ""
@@ -184,7 +180,7 @@ class PIILinker():
                     wFile.write(self.STARTER)
                     
                 for subID, student in self.DATABASE.items():
-                    with open('_'.join(student.NAME.split()) + '_' + str(subID) + ".cpp", 'w') as wFile:
+                    with open('_'.join(student.NAME.split()) + '_' + str(subID) + ".cpp", 'w') as wFile: 
                         wFile.write(student.CODE)
                     bar(1)
                         
@@ -198,7 +194,7 @@ class PIILinker():
     @staticmethod
     def clearTerminal() -> None:
         """ Clears Terminal of All Text """
-        sys('cls' if OS == 'nt' else 'clear')
+        system('cls' if OS == 'nt' else 'clear')
     
     
 
@@ -207,6 +203,7 @@ def main():
     mgr = PIILinker()
     
     mgr.setup()    #> Setup Params & Data
+    #!! Maybe Add Terminal Validation
     mgr.build()    #> Build Student Database
     mgr.extract()  #> Extract Student Code
     mgr.generate() #> Generate PII-Linked Folder of Student Code
