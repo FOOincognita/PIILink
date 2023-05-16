@@ -163,26 +163,48 @@ class PIILinker():
             print("Generating PII-Linked Folder...")
             
             #* Create & open unique folder using date & time; created in ROOTDIR
-            try:
-                T = dt.now()
-                fileID = f"{T.year}_{T.second}"
-                mkdir(EXPDIR := path.join(self.ROOTDIR, f"PIILinked_{fileID}")) 
-                chdir(EXPDIR) #> Open new folder
-                
-            except KeyboardInterrupt: exit()
-            except Exception as e: 
-                print(f"[ERROR G1]: Unknown Exception 1:\n\t{e}\nEXITING...")
-                exit()
+            while True:
+                try:
+                    #* Try to create folder; if exists, create folder with suffix "(n)"
+                    T, n  = dt.now(), 0
+                    fileID = f"{T.month}-{T.year}" + (f"({n})" if n else "")
+                    mkdir(EXPDIR := path.join(self.ROOTDIR, f"PIILinked_{fileID}")) 
+                    
+                except KeyboardInterrupt: exit()
+                except FileExistsError: 
+                    num += 1
+                    continue
+                except Exception as e: 
+                    print(f"[ERROR G1]: Unknown Exception 1:\n\t{e}\nEXITING...")
+                    exit()
+                else:
+                    break
+            
+            chdir(EXPDIR) #> Open created folder
 
-            #* Write all files
+            #* Write all files; starter & Student
             try:
                 with open("0_STARTER.cpp", 'w') as wFile: #? Write combined starter to directory
                     wFile.write(self.STARTER)
                     
                 for subID, student in self.DATABASE.items():
+                    #* Create Unique folder for each student
+                    n = 0
+                    while True:
+                        try: mkdir(STUDIR := path.join(getcwd(), '_'.join(student.NAME.split()) + (f"({n})" if n else "")))
+                        except KeyboardInterrupt: exit()
+                        except FileExistsError: n += 1
+                        else: break
+                    
+                    chdir(STUDIR) #> Open Individual student directory to write
+                    
+                    #* Write student code to single file
                     with open('_'.join(student.NAME.split()) + '_' + str(subID) + ".cpp", 'w') as wFile: 
                         wFile.write(student.CODE)
+                        
+                    chdir(EXPDIR) #> Restore Export Directory
                     bar(1)
+                    
                         
             except KeyboardInterrupt: exit()
             except Exception as e: print(f"[ERROR G2]: Unknown Exception 2:\n\t{e}\nFor: {student.NAME}")
