@@ -14,7 +14,6 @@ from os import listdir, chdir, getcwd, path, mkdir, name as OS, system as sys
 from alive_progress import alive_bar # pip install alive-progress
 from datetime import datetime as dt
 
-
 #* Student Dataclass
 class Student():
     """
@@ -46,9 +45,8 @@ class FileWrangler():
     
     def __init__(self) -> None:
         self.ROOTDIR: str = getcwd()
-        self.ARCHIVE: str = path.join(self.ROOTDIR, "Archive_HW_Dungeon_Crawler_Spring23") #!!ADD AUTO-DETECTION
-        self.SID_CSV: str = "SID_HW_Dungeon_Crawler_scores.csv" #!! ADD AUTO-DETECTION 
-        self.OUTFILE: str = "HW_StringCalc" #? Prefix of output folder
+        self.ARCHIVE: str = "NONE"
+        self.SID_CSV: str = "NONE"
         self.STARTER: str = "" #? Holds combined starter code
         
         self.CHECK: list[str] = [] #? Contains Filenames of files to extract from student code
@@ -59,17 +57,26 @@ class FileWrangler():
         """ Returns student given submissionID """
         return self.DATABASE.get(SID)
     
-    def build(self) -> None:
-        """ Builds student database using exported submission CSV """
+    def setup(self) -> None:
+        """ Initializes config variables using auto-detection """
         with alive_bar(1) as bar:
-            print("Building Student Database...")
+            print("Auto-Dectecting Files...")
             
+            #* Auto-Detecting Files
+            for file in listdir():
+                if (fStrp := file.strip()).startswith("Archive_"):
+                    self.ARCHIVE = path.join(self.ROOTDIR, fStrp)
+                    
+                elif fStrp.strip().startswith("SID_") and fStrp.endswith(".csv"):
+                    self.SID_CSV = fStrp
+                    
             #* Grabbing names of starter code files to extract from student submissions
             try:
                 chdir(path.join(self.ROOTDIR, "Starter")) #> Opening starter
                 self.CHECK = [file for file in listdir() if file.endswith(".cpp") or file.endswith(".h")]
                 if not self.CHECK:
-                    print("[ERROR]: No .cpp nor .h files found in directory 'Starter'\nEXITING...")
+                    print("[ERROR S1]: No .cpp nor .h files found in directory 'Starter'\nEXITING...")
+                    exit()
                 
                 #* Create combined starter code file 
                 
@@ -80,9 +87,18 @@ class FileWrangler():
                 chdir(self.ROOTDIR) #> Restoring root directory
                 
             except FileNotFoundError: 
-                print(f"[ERROR B1]: {self.SID_CSV} is not in root directory\n\t{self.ROOTDIR}\nEXITING...")
+                print(f"[ERROR S2]: Missing File in root directory\n\t{self.ROOTDIR}\nEXITING...")
                 exit()
-            except Exception as e: print(f"[ERROR B3]: Unknown Exception:\n\t{e}")
+            except Exception as e: print(f"[ERROR S3]: Unknown Exception:\n\t{e}")
+            bar(1)
+            
+            #!print(self.DATABASE, self.ARCHIVE, self.SID_CSV, self.CHECK)
+                
+    
+    def build(self) -> None:
+        """ Builds student database using exported submission CSV """
+        with alive_bar(1) as bar:
+            print("Building Student Database...")
         
             #* Building Student Database
             try:
@@ -96,11 +112,12 @@ class FileWrangler():
                             ]
                     } 
                     
-            except FileNotFoundError: print(f"[ERROR B2]: {self.SID_CSV} is not in root directory\n\t{self.ROOTDIR}")
+            except FileNotFoundError: print(f"[ERROR B1]: {self.SID_CSV} is not in root directory\n\t{self.ROOTDIR}")
             except KeyboardInterrupt: exit()
-            except Exception as e: print(f"[ERROR B3]: Unknown Exception:\n\t{e}")
+            except Exception as e: print(f"[ERROR B2]: Unknown Exception:\n\t{e}")
             bar(1)
             print("Database Sucessfully Built...")
+            #!print(self.DATABASE)
        
             
     def extract(self) -> None:
@@ -139,8 +156,8 @@ class FileWrangler():
             #* Create & open unique folder using date & time; created in ROOTDIR
             try:
                 T = dt.now()
-                fileID = f"{T.month}-{T.day}-{T.year}"
-                mkdir(EXPDIR := path.join(self.ROOTDIR, f"{self.OUTFILE}_{fileID}")) 
+                fileID = f"{T.year}_{T.second}"
+                mkdir(EXPDIR := path.join(self.ROOTDIR, f"PIILinked_{fileID}")) 
                 chdir(EXPDIR) #> Open new folder
                 
             except KeyboardInterrupt: exit()
@@ -172,6 +189,7 @@ class FileWrangler():
     
 def main():
     mgr = FileWrangler()
+    mgr.setup()
     mgr.build()
     mgr.extract()
     mgr.generate()
