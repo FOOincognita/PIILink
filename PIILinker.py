@@ -73,7 +73,7 @@ class PIILinker():
             
             #* Auto-Detecting Files
             for file in listdir():
-                if (fStrp := file.strip()).startswith("Archive_"):
+                if (fStrp := file.strip()).startswith("Archive_") and not fStrp.endswith(".zip"):
                     self.ARCHIVE = path.join(self.ROOTDIR, fStrp)
                     
                 elif fStrp.strip().startswith("SID_") and fStrp.endswith(".csv"):
