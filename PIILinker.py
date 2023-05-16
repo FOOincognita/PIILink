@@ -118,6 +118,12 @@ class FileWrangler():
             except FileNotFoundError: print(f"[ERROR B1]: {self.SID_CSV} is not in root directory\n\t{self.ROOTDIR}")
             except KeyboardInterrupt: exit()
             except Exception as e: print(f"[ERROR B2]: Unknown Exception:\n\t{e}")
+            
+            #! Check if Database is empty
+            if not len(self.DATABASE) or all(student == None for student in self.DATABASE.values()):
+                print("[ERROR B3]: Database Empty\nEXITING...")
+                exit()
+                
             bar(1)
             print("Database Sucessfully Built...")
        
